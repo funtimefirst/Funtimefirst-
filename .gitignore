@@ -3,3 +3,12 @@
 
 # Ada Library Information
 *.ali
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Nova runtime files
+.nova_config.json
+.nova_history.json
