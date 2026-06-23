@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Z-Tracker | Survival Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-bar">
+        <h1>Z-Tracker</h1>
+        <p class="subtitle">Zombie Activity & Survival Command Dashboard</p>
+      </header>
+
+      <section id="alertBanner" class="alert-banner hidden" role="alert" aria-live="assertive"></section>
+
+      <main class="grid">
+        <section class="panel" id="statsPanel">
+          <h2>📊 Survival Stats</h2>
+          <div class="stats-grid">
+            <article>
+              <span class="label">Sightings Logged</span>
+              <strong id="totalSightings">0</strong>
+            </article>
+            <article>
+              <span class="label">Highest Threat</span>
+              <strong id="highestThreat">Low</strong>
+            </article>
+            <article>
+              <span class="label">Days Survived</span>
+              <div class="days-control">
+                <button id="decreaseDays" type="button" aria-label="Decrease days survived">−</button>
+                <strong id="daysSurvived">1</strong>
+                <button id="increaseDays" type="button" aria-label="Increase days survived">+</button>
+              </div>
+            </article>
+            <article>
+              <span class="label">Supply Health</span>
+              <strong id="supplyHealth">Stable</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>🧟 Zombie Sightings</h2>
+          <form id="sightingForm" class="form-grid">
+            <label>
+              Location
+              <div class="row-inline">
+                <input type="text" id="sightingLocation" required placeholder="Sector, city, landmark" />
+                <button type="button" id="gpsButton" class="secondary">GPS</button>
+              </div>
+            </label>
+            <label>
+              Threat Level
+              <select id="sightingThreat" required>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </label>
+            <label>
+              Zombie Count
+              <input type="number" id="sightingCount" min="1" required placeholder="0" />
+            </label>
+            <label>
+              Zombie Type
+              <select id="sightingType" required>
+                <option value="Walker">Walker</option>
+                <option value="Runner">Runner</option>
+                <option value="Mutated">Mutated</option>
+                <option value="Crawler">Crawler</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </label>
+            <label class="full-width">
+              Notes
+              <textarea id="sightingNotes" rows="3" placeholder="Behavior, speed, special traits..."></textarea>
+            </label>
+            <button type="submit">Log Sighting</button>
+          </form>
+
+          <div class="filters">
+            <h3>Filter Sightings</h3>
+            <label>
+              Threat
+              <select id="filterThreat">
+                <option value="All">All</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </label>
+            <label>
+              Location
+              <input type="text" id="filterLocation" placeholder="Search location" />
+            </label>
+            <label>
+              Date
+              <input type="date" id="filterDate" />
+            </label>
+          </div>
+
+          <div id="mapPlaceholder" class="map-placeholder" aria-label="Map display area">
+            <h3>🗺️ Tactical Map</h3>
+            <p>Map API unavailable. Showing recent coordinate-based logs only.</p>
+            <ul id="mapList"></ul>
+          </div>
+
+          <ul id="sightingsList" class="card-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>🛡️ Safe Zones</h2>
+          <form id="safeZoneForm" class="form-grid">
+            <label>
+              Name
+              <input type="text" id="safeName" required placeholder="Safe house name" />
+            </label>
+            <label>
+              Supplies
+              <input type="text" id="safeSupplies" required placeholder="Food, water, ammo..." />
+            </label>
+            <label>
+              Capacity
+              <input type="number" id="safeCapacity" min="1" required placeholder="0" />
+            </label>
+            <label class="full-width">
+              Notes
+              <textarea id="safeNotes" rows="2" placeholder="Security status, entry codes..."></textarea>
+            </label>
+            <button type="submit">Add Safe Zone</button>
+          </form>
+          <ul id="safeZonesList" class="card-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>🎒 Supply Tracker</h2>
+          <form id="supplyForm" class="form-grid">
+            <label>
+              Category
+              <select id="supplyCategory" required>
+                <option value="Food">Food</option>
+                <option value="Water">Water</option>
+                <option value="Ammo">Ammo</option>
+                <option value="Medical">Medical</option>
+              </select>
+            </label>
+            <label>
+              Quantity
+              <input type="number" id="supplyQuantity" min="0" required />
+            </label>
+            <label>
+              Low-warning threshold
+              <input type="number" id="supplyThreshold" min="0" required />
+            </label>
+            <button type="submit">Save Supply</button>
+          </form>
+          <ul id="supplyList" class="card-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>💾 Data Operations</h2>
+          <div class="data-tools">
+            <button id="exportBtn" type="button">Export Data</button>
+            <label class="import-label" for="importInput">Import Data</label>
+            <input id="importInput" type="file" accept="application/json" />
+            <button id="resetBtn" type="button" class="danger">Reset All Data</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="listItemActions">
+      <div class="actions">
+        <button class="edit secondary" type="button">Edit</button>
+        <button class="delete danger" type="button">Delete</button>
+      </div>
+    </template>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
