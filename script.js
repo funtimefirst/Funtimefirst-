@@ -89,6 +89,14 @@ function renderStats() {
   ui.supplyHealth.textContent = supplyHealthSummary();
 }
 
+function appendTextElement(parent, tagName, text, className) {
+  const element = document.createElement(tagName);
+  if (className) element.className = className;
+  element.textContent = String(text);
+  parent.appendChild(element);
+  return element;
+}
+
 function renderSightings() {
   const threatFilter = $("filterThreat").value;
   const locFilter = $("filterLocation").value.trim().toLowerCase();
@@ -101,9 +109,9 @@ function renderSightings() {
     return matchThreat && matchLocation && matchDate;
   });
 
-  ui.sightingsList.innerHTML = "";
+  ui.sightingsList.replaceChildren();
   if (!filtered.length) {
-    ui.sightingsList.innerHTML = "<li>No sightings match current filters.</li>";
+    appendTextElement(ui.sightingsList, "li", "No sightings match current filters.");
     return;
   }
 
@@ -111,11 +119,15 @@ function renderSightings() {
     .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
     .forEach((s) => {
       const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${s.location}</strong> — ${s.threat}
-        <div class="meta">${new Date(s.timestamp).toLocaleString()} • ${s.count} zombies • ${s.type}</div>
-        <div>${s.notes || "No notes."}</div>
-      `;
+      appendTextElement(li, "strong", s.location);
+      li.append(document.createTextNode(` — ${s.threat}`));
+      appendTextElement(
+        li,
+        "div",
+        `${new Date(s.timestamp).toLocaleString()} • ${s.count} zombies • ${s.type}`,
+        "meta"
+      );
+      appendTextElement(li, "div", s.notes || "No notes.");
       const actions = $("listItemActions").content.cloneNode(true);
       actions.querySelector(".edit").addEventListener("click", () => editSighting(s.id));
       actions.querySelector(".delete").addEventListener("click", () => deleteSighting(s.id));
@@ -126,32 +138,35 @@ function renderSightings() {
 
 function renderMapList() {
   const withCoords = state.sightings.filter((s) => s.coords).slice(-5).reverse();
-  ui.mapList.innerHTML = withCoords.length
-    ? withCoords
-        .map(
-          (s) =>
-            `<li>${s.location} (${s.coords.lat.toFixed(3)}, ${s.coords.lng.toFixed(3)}) - <strong>${s.threat}</strong></li>`
-        )
-        .join("")
-    : "<li>No GPS sightings logged yet.</li>";
+  ui.mapList.replaceChildren();
+  if (!withCoords.length) {
+    appendTextElement(ui.mapList, "li", "No GPS sightings logged yet.");
+    return;
+  }
+
+  withCoords.forEach((s) => {
+    appendTextElement(
+      ui.mapList,
+      "li",
+      `${s.location} (${s.coords.lat.toFixed(3)}, ${s.coords.lng.toFixed(3)}) - ${s.threat}`
+    );
+  });
 }
 
 function renderSafeZones() {
-  ui.safeZonesList.innerHTML = "";
+  ui.safeZonesList.replaceChildren();
   if (!state.safeZones.length) {
-    ui.safeZonesList.innerHTML = "<li class='safe'>No safe zones recorded.</li>";
+    appendTextElement(ui.safeZonesList, "li", "No safe zones recorded.", "safe");
     return;
   }
 
   state.safeZones.forEach((z) => {
     const li = document.createElement("li");
     li.classList.add("safe");
-    li.innerHTML = `
-      <strong>${z.name}</strong>
-      <div class="meta">Capacity: ${z.capacity}</div>
-      <div>Supplies: ${z.supplies}</div>
-      <div>${z.notes || "No notes."}</div>
-    `;
+    appendTextElement(li, "strong", z.name);
+    appendTextElement(li, "div", `Capacity: ${z.capacity}`, "meta");
+    appendTextElement(li, "div", `Supplies: ${z.supplies}`);
+    appendTextElement(li, "div", z.notes || "No notes.");
     const actions = $("listItemActions").content.cloneNode(true);
     actions.querySelector(".edit").addEventListener("click", () => editSafeZone(z.id));
     actions.querySelector(".delete").addEventListener("click", () => deleteSafeZone(z.id));
@@ -161,15 +176,13 @@ function renderSafeZones() {
 }
 
 function renderSupplies() {
-  ui.supplyList.innerHTML = "";
+  ui.supplyList.replaceChildren();
   state.supplies.forEach((s) => {
     const li = document.createElement("li");
     const isLow = s.quantity <= s.threshold;
-    li.innerHTML = `
-      <strong>${s.category}</strong>
-      <div class="meta">Qty: ${s.quantity} • Threshold: ${s.threshold}</div>
-      ${isLow ? "<div class='low-supply'>Low supply warning</div>" : ""}
-    `;
+    appendTextElement(li, "strong", s.category);
+    appendTextElement(li, "div", `Qty: ${s.quantity} • Threshold: ${s.threshold}`, "meta");
+    if (isLow) appendTextElement(li, "div", "Low supply warning", "low-supply");
     const actions = $("listItemActions").content.cloneNode(true);
     actions.querySelector(".edit").addEventListener("click", () => editSupply(s.id));
     actions.querySelector(".delete").addEventListener("click", () => deleteSupply(s.id));
