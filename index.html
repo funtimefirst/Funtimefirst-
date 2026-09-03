@@ -622,7 +622,13 @@
   @media (max-width: 1200px) {
     #win-map { left: 400px; width: 420px; }
     #win-jarvis { left: 400px; top: 460px; }
-    #win-intel { display: none !important; }
+    #win-intel {
+      left: auto;
+      right: 20px;
+      width: calc(100vw - 40px);
+      max-width: 380px;
+      min-width: 0;
+    }
   }
 </style>
 </head>
@@ -1181,7 +1187,10 @@ function sendComm() {
   if (!msg) return;
   const d = document.createElement('div');
   d.className = 'comm-msg';
-  d.innerHTML = `<span class="speaker">STARK</span>: ${msg}`;
+  const speaker = document.createElement('span');
+  speaker.className = 'speaker';
+  speaker.textContent = 'STARK';
+  d.append(speaker, document.createTextNode(`: ${msg}`));
   commsLog.appendChild(d);
   commsLog.scrollTop = commsLog.scrollHeight;
   commInput.value = '';
